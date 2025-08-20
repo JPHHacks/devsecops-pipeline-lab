@@ -1,0 +1,42 @@
+# CloudFormation Guard Security Rules
+
+# EC2 Security Rules
+AWS::EC2::Instance {
+    Properties {
+        SecurityGroupIds != null
+        SecurityGroupIds[*] != null
+        SecurityGroupIds[*] != ""
+    }
+}
+
+# RDS Security Rules
+AWS::RDS::DBInstance {
+    Properties {
+        StorageEncrypted == true
+        PubliclyAccessible == false
+    }
+}
+
+# S3 Security Rules
+AWS::S3::Bucket {
+    Properties {
+        BucketEncryption != null
+        PublicAccessBlockConfiguration != null
+    }
+}
+
+# EKS Security Rules
+AWS::EKS::Cluster {
+    Properties {
+        Logging != null
+        EncryptionConfig != null
+    }
+}
+
+# Lambda Security Rules
+AWS::Lambda::Function {
+    Properties {
+        Environment != null
+        Environment.Variables != null
+    }
+}

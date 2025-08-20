@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Template for CloudFormation Guard testing'
+
+Resources:
+  NonCompliantEC2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-12345678
+      InstanceType: t2.micro
+      # Missing SecurityGroupIds - violates CloudFormation Guard rule
+      
+  NonCompliantRDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: db.t3.micro
+      Engine: mysql
+      # Missing StorageEncrypted - violates CloudFormation Guard rule
+      
+  NonCompliantS3:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: test-bucket-123
+      # Missing encryption and public access block - violates CloudFormation Guard rules

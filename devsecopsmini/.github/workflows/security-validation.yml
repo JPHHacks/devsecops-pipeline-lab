@@ -1,0 +1,65 @@
+name: CloudFormation Security Validation
+on:
+  # Disabled for demo purposes - uncomment to enable
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  
+  # Manual trigger only
+  workflow_dispatch:
+
+jobs:
+  security-validation:
+    runs-on: ubuntu-latest
+    # Add condition to prevent running
+    if: false  # This will prevent the job from running
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Run CloudFormation Guard Validation
+        id: cfn-validation
+        run: |
+          # Check if template.yaml exists
+          if [ ! -f "template.yaml" ]; then
+            echo "❌ template.yaml not found"
+            exit 1
+          fi
+          
+          # Run validation using Docker image
+          docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            -w /app \
+            ${{ steps.login-ecr.outputs.registry }}/cfn-guard-validator:latest \
+            cfn-guard validate -d template.yaml -r security-rules.guard || exit 1
+          
+          echo "✅ CloudFormation template passed security validation"
+      
+      - name: Check Validation Results
+        if: failure()
+        run: |
+          echo "🚨 Security violations found - sending SNS notification"
+          # Send SNS notification for violations
+          aws sns publish \
+            --topic-arn ${{ secrets.SNS_TOPIC_ARN }} \
+            --subject "CloudFormation Security Violations Detected" \
+            --message "Template ${{ github.repository }} has security violations. Check the build logs for details."
+      
+      - name: Validation Success
+        if: success()
+        run: |
+          echo "✅ CloudFormation template passed all security checks"
