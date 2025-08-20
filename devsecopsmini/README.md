@@ -53,14 +53,6 @@ If you want to test the GitHub Actions workflow:
 └── README.md                      # This file
 ```
 
-## 🎯 Perfect For
-
-- **Portfolio projects**
-- **Learning DevSecOps**
-- **Interview demonstrations**
-- **Security automation examples**
-- **AWS best practices reference**
-
 ## 🔒 Security Note
 
 The workflow is disabled by default to prevent accidental execution. This makes it safe to:
